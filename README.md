@@ -1,6 +1,6 @@
-# AI Book Reader for Raspberry Pi
+# AI Book Reader for Blind Peoples
 
-A fully autonomous, voice-guided AI book reader built for the Raspberry Pi. The system uses a continuous camera feed to automatically detect when a page is placed, reads the text out loud, explains the content, and interactively offers summaries using offline local models.
+A fully autonomous, voice-guided AI book reader built by the Raspberry Pi. The system uses a continuous camera feed to automatically detect when a page is placed, reads the text out loud, explains the content, and interactively offers summaries using offline local models.
 
 ## Features
 - **Auto Page Detection:** Uses OpenCV motion detection (frame differencing) to automatically sense when you place a page and wait for it to settle. No buttons needed!
@@ -12,7 +12,7 @@ A fully autonomous, voice-guided AI book reader built for the Raspberry Pi. The 
 
 ## Hardware Requirements
 - **Raspberry Pi 5** (Recommended for AI processing speed)
-- USB Webcam or Pi Camera Module
+- USB Webcam 
 - Audio output (Headphones or Speakers)
 
 ## Software Prerequisites
@@ -63,5 +63,4 @@ python3 ocr_reader.py --device 0
 5. **LLM:** Moondream2 explains the context and offers a summary.
 6. **State:** Saves session memory (FIFO cache up to 8 pages) to `session.json`.
 
-## License
-MIT License
+
