@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi Cam Live — Arducam UVC 573</title>
+    <meta name="description" content="Live camera feed from Raspberry Pi 5 with Arducam UVC 573 global shutter camera">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-mark">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <circle cx="14" cy="14" r="12" stroke="url(#grad)" stroke-width="2"/>
+                    <circle cx="14" cy="14" r="6" fill="url(#grad)"/>
+                    <circle cx="14" cy="14" r="3" fill="#0a0a0f"/>
+                    <defs>
+                        <linearGradient id="grad" x1="0" y1="0" x2="28" y2="28">
+                            <stop stop-color="#6366f1"/>
+                            <stop offset="1" stop-color="#06b6d4"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="header-title">
+                <h1>Pi Cam Live</h1>
+                <span class="header-subtitle">Arducam UVC 573 · Global Shutter</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="status-badge" id="statusBadge">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting…</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="main">
+        <!-- Video viewport -->
+        <section class="video-section">
+            <div class="video-container" id="videoContainer">
+                <!-- Loading state -->
+                <div class="video-loader" id="videoLoader">
+                    <div class="loader-ring"></div>
+                    <p>Initializing camera feed…</p>
+                </div>
+                <!-- Error state -->
+                <div class="video-error" id="videoError" style="display:none;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/>
+                    </svg>
+                    <p>Camera feed unavailable</p>
+                    <button class="btn btn-retry" onclick="reconnect()">Retry Connection</button>
+                </div>
+                <!-- Video feed -->
+                <img id="videoFeed" src="/video_feed" alt="Live Camera Feed" style="display:none;" />
+
+                <!-- Overlay controls -->
+                <div class="video-overlay">
+                    <div class="overlay-top">
+                        <div class="rec-indicator" id="recIndicator">
+                            <span class="rec-dot"></span>
+                            LIVE
+                        </div>
+                        <span class="timestamp" id="timestamp"></span>
+                    </div>
+                    <div class="overlay-bottom">
+                        <button class="btn-icon" onclick="takeSnapshot()" title="Take Snapshot">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+                                <circle cx="12" cy="13" r="4"/>
+                            </svg>
+                        </button>
+                        <button class="btn-icon" onclick="toggleFullscreen()" title="Fullscreen">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Corner accents -->
+                <div class="corner-accent tl"></div>
+                <div class="corner-accent tr"></div>
+                <div class="corner-accent bl"></div>
+                <div class="corner-accent br"></div>
+            </div>
+        </section>
+
+        <!-- Stats panel -->
+        <section class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Resolution</span>
+                    <span class="stat-value" id="statResolution">—</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Frame Rate</span>
+                    <span class="stat-value" id="statFps">—</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Device</span>
+                    <span class="stat-value" id="statDevice">—</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Uptime</span>
+                    <span class="stat-value" id="statUptime">0s</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast">
+        <span id="toastMsg"></span>
+    </div>
+
+    <script>
+        // ─── State ──────────────────────────────────────────
+        let uptimeStart = Date.now();
+        let statsInterval = null;
+        let clockInterval = null;
+
+        // ─── Elements ───────────────────────────────────────
+        const videoFeed    = document.getElementById("videoFeed");
+        const videoLoader  = document.getElementById("videoLoader");
+        const videoError   = document.getElementById("videoError");
+        const statusBadge  = document.getElementById("statusBadge");
+
+        // ─── Video feed lifecycle ───────────────────────────
+        videoFeed.addEventListener("load", () => {
+            videoLoader.style.display = "none";
+            videoError.style.display  = "none";
+            videoFeed.style.display   = "block";
+            setStatus("live");
+        });
+
+        videoFeed.addEventListener("error", () => {
+            videoLoader.style.display = "none";
+            videoFeed.style.display   = "none";
+            videoError.style.display  = "flex";
+            setStatus("offline");
+        });
+
+        function reconnect() {
+            videoError.style.display  = "none";
+            videoLoader.style.display = "flex";
+            videoFeed.style.display   = "none";
+            setStatus("connecting");
+            // Cache-bust
+            videoFeed.src = "/video_feed?t=" + Date.now();
+        }
+
+        function setStatus(state) {
+            const dot  = statusBadge.querySelector(".status-dot");
+            const text = statusBadge.querySelector(".status-text");
+            statusBadge.className = "status-badge status-" + state;
+            const labels = { live: "Live", offline: "Offline", connecting: "Connecting…" };
+            text.textContent = labels[state] || state;
+        }
+
+        // ─── Stats polling ──────────────────────────────────
+        async function fetchStats() {
+            try {
+                const res = await fetch("/api/stats");
+                if (!res.ok) return;
+                const d = await res.json();
+                document.getElementById("statResolution").textContent = d.resolution || "—";
+                document.getElementById("statFps").textContent = d.fps ? d.fps + " fps" : "—";
+                document.getElementById("statDevice").textContent = d.device || "—";
+            } catch {
+                // silent
+            }
+        }
+
+        // ─── Uptime clock ───────────────────────────────────
+        function updateUptime() {
+            const s = Math.floor((Date.now() - uptimeStart) / 1000);
+            const h = Math.floor(s / 3600);
+            const m = Math.floor((s % 3600) / 60);
+            const sec = s % 60;
+            let text = "";
+            if (h > 0) text += h + "h ";
+            if (m > 0 || h > 0) text += m + "m ";
+            text += sec + "s";
+            document.getElementById("statUptime").textContent = text;
+        }
+
+        // ─── Timestamp ──────────────────────────────────────
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById("timestamp").textContent =
+                now.toLocaleTimeString("en-GB", { hour12: false }) + "." +
+                String(now.getMilliseconds()).padStart(3, "0");
+        }
+
+        // ─── Actions ────────────────────────────────────────
+        function takeSnapshot() {
+            const a = document.createElement("a");
+            a.href = "/api/snapshot";
+            const ts = new Date().toISOString().replace(/[:.]/g, "-");
+            a.download = "snapshot_" + ts + ".jpg";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast("📸 Snapshot saved!");
+        }
+
+        function toggleFullscreen() {
+            const container = document.getElementById("videoContainer");
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            document.getElementById("toastMsg").textContent = msg;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 2600);
+        }
+
+        // ─── Boot ───────────────────────────────────────────
+        fetchStats();
+        statsInterval = setInterval(fetchStats, 3000);
+        clockInterval = setInterval(() => { updateUptime(); updateTimestamp(); }, 200);
+        updateTimestamp();
+    </script>
+</body>
+</html>
