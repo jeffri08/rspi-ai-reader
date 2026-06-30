@@ -1,0 +1,4 @@
+#session.json
+session.json
+*.pyc
+__pycache__/

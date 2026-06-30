@@ -1,0 +1,4 @@
+opencv-python-headless
+rapidocr-onnxruntime
+requests
+numpy
